@@ -1,10 +1,25 @@
 
 
-/*********
-deepak kumar
-  this is the FULL CODE  of the humidity sensor using mqtt
+/******************************************************************************
+
+Example Code for controlling a light ON/OFF and getting the data from the temperature sensor using MQTT
+by: deepak ,prateek
+
+  Settings: 
+  Board -> ESP32 DEv Module 
+  Baudrate -> 115200
+ 
+  MQTT Broker --> Mosquitto MQTT on Raspberry Pi 4 
   
-*********/
+//The code works on MQTT Protocol to send/receive data across the cloud.
+ 
+  
+//Edit ONLY the "Configuration" part of the code to make any changes to WiFi or MQTT settings.
+ 
+ 
+ This sketch connects the ESP32  to a MQTT broker and subcribes to the topic
+test/dht. 
+******************************************************************************/
 
 #include "PubSubClient.h" // Connect and publish to the MQTT broker
 
@@ -14,22 +29,24 @@ deepak kumar
 //#include <Adafruit_BME280.h>// NEW EDIT ON THE 12.02.2021
 
 #include <Adafruit_Sensor.h>
-
-// Replace the next variables with your SSID/Password combination
+*********************************** Configuration *************************************************
+//wifi code
 const char* ssid = "KS SMART";
 const char* password = "godspeed123";
+const char* mqtt_port = 1883
 
-// Add your MQTT Broker IP address, example:
-//const char* mqtt_server = "192.168.1.144";
-const char* mqtt_server = "192.168.50.25";
+//code for mqtt 
+
+const char* mqtt_server = "192.168.50.25";// add the server's IP address
 const char* mqtt_username = "prateek"; // MQTT username
-const char* mqtt_password = "prateek"; 
-const char* clientID = "ksiot";
+const char* mqtt_password = "prateek"; //MQTT password
+const char* clientID = "ksiot";// Client ID
 
 
+//*********************************************************************************************
 
 WiFiClient wifiClient;
-PubSubClient client(mqtt_server, 1883, wifiClient);
+PubSubClient client(mqtt_server, 1883, wifiClient);// BRIDGE FOR CONNECTING THE  SERVER TO THE ESP32
 long lastMsg = 0;
 char msg[50];
 int value = 0;
@@ -41,7 +58,7 @@ int value = 0;
 #define BME_MOSI 23
 #define BME_CS 5*/      
 
-//Adafruit_BME280 bme; // I2C
+//Adafruit_BME280 bme; // I2C// once connected with the sensor(12.02.2021)
 //Adafruit_BME280 bme(BME_CS); // hardware SPI
 //Adafruit_BME280 bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK); // software SPI
 float temperature = 200;
@@ -49,6 +66,7 @@ float humidity = 100;
 
 // LED Pin 
 const int ledPin = 4;
+//*********************************************************************************************
 
 void setup() {
   Serial.begin(115200);
@@ -85,7 +103,7 @@ void setup_wifi() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 }
-
+// MESSAGE CODE ON THE SERVER 
 void callback(char* topic, byte* message, unsigned int length) {
   Serial.print("Message arrived on topic: ");
   Serial.print(topic);
@@ -114,18 +132,19 @@ void callback(char* topic, byte* message, unsigned int length) {
     }
   }
 }
-
+// AUTO RECONNECT CODE ONCE THE CONNECTION GETS RIPED OFF
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
+    // THE CLIENT .CONNECT BRIDGE WITH THE  CLIENT ID AND THE USER NAME AND THE PASSWORD
     if (client.connect(clientID, mqtt_username, mqtt_password)) {
       Serial.println("connected");
       // Subscribe
       client.subscribe("test/dht");
     } else {
-      Serial.print("failed, rc=");
+      Serial.print("failed, rc=");// RETURN CODE CONDITION OCCURS WHEN  THECONNECTION IS NOT DONE
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
